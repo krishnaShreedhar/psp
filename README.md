@@ -24,3 +24,5 @@ Plan of implementation:
 4. Modelling idea
    1. Take the aggregate values
    2. Predict the correctness of 18 questions
+5. Type of problem: Multi-label Classification (MLC)
+   1. [MLC MLM Reference](https://machinelearningmastery.com/multi-label-classification-with-deep-learning/)
