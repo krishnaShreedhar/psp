@@ -175,7 +175,7 @@ class DataHandler:
 def flow_01():
     dir_root = '../data/predict-student-performance-from-game-play/'
     dir_out = '../data/psp_outputs_01/'
-    obj_dh = DataHandler(dir_root, dir_out, debug=True)
+    obj_dh = DataHandler(dir_root, dir_out, debug=False)
     obj_dh.prepare_dataset()
 
 
