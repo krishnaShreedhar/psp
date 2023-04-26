@@ -71,7 +71,7 @@ class DataHandler:
 
     def get_dict_agg(self, df_session):
         dict_record = {}
-        list_level_groups = []
+        list_level_groups = ["0-4", "5-12", "13-22"]
 
         # Update aggregates -- event counts
         for level_group in list_level_groups:
@@ -79,7 +79,7 @@ class DataHandler:
             dict_tmp = df_lg['event_name'].value_counts().to_dict()
 
             # Distinguish same events at different level group
-            dict_tmp = {f"{key}:{level_group}": val for key, val in dict_tmp.items}
+            dict_tmp = {f"{key}:{level_group}": val for key, val in dict_tmp.items()}
             dict_record.update(dict_tmp)
 
         return dict_record
@@ -108,16 +108,43 @@ class DataHandler:
         dict_q_correct["num_correct"] = sum(dict_q_correct.values())
         return dict_q_correct
 
+    def get_list_cols(self, session_id):
+        list_cols = ["ith_sess", "session_id"]
+
+        cond_session = self.df_train['session_id'] == session_id
+        df_session = self.df_train[cond_session]
+
+        dict_agg = self.get_dict_agg(df_session)
+        list_agg_cols = list(dict_agg.keys())
+        list_agg_cols.sort()
+        list_cols.extend(list_agg_cols)
+
+        dict_ckpt = self.get_checkpoint_info(df_session)
+        list_ckpt_cols = list(dict_ckpt.keys())
+        list_ckpt_cols.sort()
+        list_cols.extend(list_ckpt_cols)
+
+        list_q = [f"q{x}" for x in range(1, 19)]
+        list_cols.extend(list_q)
+
+        list_cols.append('num_correct')
+
+        return list_cols
+
     def get_df_agg(self):
         list_uniq_sessions = self.get_unique_sessions()
+        list_uniq_sessions.sort()
+
         len_sessions = len(list_uniq_sessions)
         list_records = []
-        for ith_sess, session_id in enumerate(list_uniq_sessions):
-            dict_record = {"session_id": session_id}
-            cond_session = self.df_train['session_id'] == session_id
+        list_cols = self.get_list_cols(list_uniq_sessions[0])
 
+        for ith_sess, session_id in enumerate(list_uniq_sessions):
+            dict_record = {"ith_sess": ith_sess, "session_id": session_id}
+
+            cond_session = self.df_train['session_id'] == session_id
             df_session = self.df_train[cond_session]
-            print(f"Processing: {ith_sess} of {len_sessions}")
+            print(f"Processing: {ith_sess+1} of {len_sessions}, len_df_session: {len(df_session)}")
 
             dict_record.update(self.get_dict_agg(df_session))
             dict_record.update(self.get_checkpoint_info(df_session))
@@ -126,7 +153,12 @@ class DataHandler:
             list_records.append(dict_record)
 
         df_agg = pd.DataFrame.from_records(list_records)
+        df_agg.to_csv(f"df_{self.get_path_df_agg()}", index=False)
+
+        df_agg = df_agg[list_cols]
         df_agg.to_csv(self.get_path_df_agg(), index=False)
+
+        print(f"Saved dataset at: {self.get_path_df_agg()}")
 
         return df_agg
 
@@ -135,12 +167,15 @@ class DataHandler:
         self.create_dirs()
         self.modify_df_labels()
         self.print_stats()
+        df_agg = self.get_df_agg()
+
+        return df_agg
 
 
 def flow_01():
-    dir_root = '../../data/predict-student-performance-from-game-play/'
-    dir_out = '../../data/psp_outputs_01/'
-    obj_dh = DataHandler(dir_root, dir_out)
+    dir_root = '../data/predict-student-performance-from-game-play/'
+    dir_out = '../data/psp_outputs_01/'
+    obj_dh = DataHandler(dir_root, dir_out, debug=True)
     obj_dh.prepare_dataset()
 
 
