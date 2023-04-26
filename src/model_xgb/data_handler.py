@@ -153,7 +153,7 @@ class DataHandler:
             list_records.append(dict_record)
 
         df_agg = pd.DataFrame.from_records(list_records)
-        df_agg.to_csv(f"df_{self.get_path_df_agg()}", index=False)
+        df_agg.to_csv(f"{self.get_path_df_agg().replace('.csv', '_01.csv')}", index=False)
 
         df_agg = df_agg[list_cols]
         df_agg.to_csv(self.get_path_df_agg(), index=False)
